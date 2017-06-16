@@ -1,0 +1,39 @@
+.fooicon-collapsed-plus .fooicon-plus:before,
+.fooicon-expanded-plus .fooicon-minus:before {
+  content: "\f067";
+}
+
+.fooicon-collapsed-minus .fooicon-plus:before,
+.fooicon-expanded-minus .fooicon-minus:before {
+  content: "\f068";
+}
+
+.fooicon-collapsed-plus-circle .fooicon-plus:before,
+.fooicon-expanded-plus-circle .fooicon-minus:before {
+  content: "\f055";
+}
+
+.fooicon-collapsed-minus-circle .fooicon-plus:before,
+.fooicon-expanded-minus-circle .fooicon-minus:before {
+  content: "\f056";
+}
+
+.fooicon-collapsed-chevron-left .fooicon-plus:before,
+.fooicon-expanded-chevron-left .fooicon-minus:before {
+  content: "\f053";
+}
+
+.fooicon-collapsed-chevron-right .fooicon-plus:before,
+.fooicon-expanded-chevron-right .fooicon-minus:before {
+  content: "\f054";
+}
+
+.fooicon-collapsed-chevron-up .fooicon-plus:before,
+.fooicon-expanded-chevron-up .fooicon-minus:before {
+  content: "\f077";
+}
+
+.fooicon-collapsed-chevron-down .fooicon-plus:before,
+.fooicon-expanded-chevron-down .fooicon-minus:before {
+  content: "\f078";
+}

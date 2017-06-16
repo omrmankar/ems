@@ -1,0 +1,11 @@
+name = Redirect after logout
+description = User redirect, after logout.
+core = 7.x
+configure = admin/config/system/redirect_after_logout
+
+; Information added by Drupal.org packaging script on 2016-11-30
+version = "7.x-1.3"
+core = "7.x"
+project = "redirect_after_logout"
+datestamp = "1480496289"
+

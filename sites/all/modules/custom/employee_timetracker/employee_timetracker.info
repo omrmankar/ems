@@ -1,0 +1,12 @@
+name = Employee Time Tracker
+description = This module manage employee time tracker.
+core = 7.x
+package = Gagan
+
+dependencies[] = jquery_update
+
+stylesheets[all][] = css/employee_timetracker.css
+
+scripts[] = js/employee_timetracker.js
+scripts[] = js/jQuery.print.js
+

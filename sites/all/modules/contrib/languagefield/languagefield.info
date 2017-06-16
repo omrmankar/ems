@@ -1,0 +1,16 @@
+name = Language Field
+description = Defines a simple language field.
+package = Fields
+core = 7.x
+
+dependencies[] = options
+
+files[] = languagefield.migrate.inc
+files[] = handlers/languagefield_handler_filter_locale_language.inc 
+
+; Information added by Drupal.org packaging script on 2016-10-23
+version = "7.x-1.5"
+core = "7.x"
+project = "languagefield"
+datestamp = "1477261950"
+

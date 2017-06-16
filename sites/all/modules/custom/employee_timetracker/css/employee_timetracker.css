@@ -1,0 +1,460 @@
+@charset "utf-8";
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300i,400,700');
+/* Document
+   ========================================================================== */
+html, body {
+	font-family: "Open Sans", sans-serif !important;
+	line-height: 1.15;
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+}
+/* Sections
+   ========================================================================== */
+body {
+	margin: 0;
+}
+article, aside, footer, header, nav, section {
+	display: block;
+}
+h1 {
+	font-size: 2em;
+	margin: 10px 0 !important;
+}
+/* Grouping content
+   ========================================================================== */
+figcaption, figure, main {
+	display: block;
+}
+figure {
+	margin: 1em 40px;
+}
+hr {
+	box-sizing: content-box;
+	height: 0;
+	overflow: visible;
+}
+pre {
+	font-family: monospace, monospace;
+	font-size: 1em;
+}
+/* Text-level semantics
+   ========================================================================== */
+a {
+	background-color: transparent;
+	-webkit-text-decoration-skip: objects;
+}
+a:active, a:hover {
+	outline-width: 0;
+}
+abbr[title] {
+	border-bottom: none;
+	text-decoration: underline;
+	text-decoration: underline dotted;
+}
+b, strong {
+	font-weight: inherit;
+}
+b, strong {
+	font-weight: bolder;
+}
+code, kbd, samp {
+	font-family: monospace, monospace;
+	font-size: 1em;
+}
+dfn {
+	font-style: italic;
+}
+mark {
+	background-color: #ff0;
+	color: #000;
+}
+small {
+	font-size: 80%;
+}
+sub, sup {
+	font-size: 75%;
+	line-height: 0;
+	position: relative;
+	vertical-align: baseline;
+}
+sub {
+	bottom: -0.25em;
+}
+sup {
+	top: -0.5em;
+}
+/* Embedded content
+   ========================================================================== */
+audio, video {
+	display: inline-block;
+}
+audio:not([controls]) {
+	display: none;
+	height: 0;
+}
+img {
+	border-style: none;
+}
+svg:not(:root) {
+	overflow: hidden;
+}
+/* Forms
+   ========================================================================== */
+button, input, optgroup, select, textarea {
+	font-family: sans-serif;
+	font-size: 100%;
+	line-height: 1.15;
+	margin: 0;
+}
+button, input {
+	overflow: visible;
+}
+button, select {
+	text-transform: none;
+}
+button, html [type="button"], [type="reset"], [type="submit"] {
+	-webkit-appearance: button;
+}
+button::-moz-focus-inner, [type="button"]::-moz-focus-inner, [type="reset"]::-moz-focus-inner, [type="submit"]::-moz-focus-inner {
+ border-style: none;
+ padding: 0;
+}
+button:-moz-focusring, [type="button"]:-moz-focusring, [type="reset"]:-moz-focusring, [type="submit"]:-moz-focusring {
+ outline: 1px dotted ButtonText;
+}
+fieldset {
+	border: 1px solid #c0c0c0;
+	margin: 0 2px;
+	padding: 0.35em 0.625em 0.75em;
+}
+legend {
+	box-sizing: border-box;
+	color: inherit;
+	display: table;
+	max-width: 100%;
+	padding: 0;
+	white-space: normal;
+}
+progress {
+	display: inline-block;
+	vertical-align: baseline;
+}
+textarea {
+	overflow: auto;
+}
+[type="checkbox"], [type="radio"] {
+	box-sizing: border-box;
+	padding: 0;
+}
+[type="number"]::-webkit-inner-spin-button, [type="number"]::-webkit-outer-spin-button {
+ height: auto;
+}
+[type="search"] {
+	-webkit-appearance: textfield;
+	outline-offset: -2px;
+}
+[type="search"]::-webkit-search-cancel-button, [type="search"]::-webkit-search-decoration {
+ -webkit-appearance: none;
+}
+::-webkit-file-upload-button {
+ -webkit-appearance: button;
+ font: inherit;
+}
+/* Interactive
+   ========================================================================== */
+details, menu {
+	display: block;
+}
+summary {
+	display: list-item;
+}
+/* Scripting
+   ========================================================================== */
+canvas {
+	display: inline-block;
+}
+template {
+	display: none;
+}
+[hidden] {
+	display: none;
+}
+/* employee-timetracker-form
+   ========================================================================== */
+.employee-timetracker-wrapper a {
+	color: #3e8e41;
+}
+form * {
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+form *::before {
+	box-sizing: inherit;
+	-webkit-box-sizing: inherit;
+}
+form *::after {
+	box-sizing: inherit;
+	-webkit-box-sizing: inherit;
+}
+/*#employee-timetracker-form, #employee-timetracker-search-form*/
+.employee-timetracker-wrapper {
+	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+	margin: auto;
+	overflow: hidden;
+	padding: 15px;
+	width: 100%;
+}
+.employee-timetracker-wrapper form {
+	margin: 0 -5px;
+	
+}
+.employee-timetracker-wrapper form > div > div {
+	padding: 0 5px;
+}
+#employee-timetracker-form .form-item label, #employee-timetracker-search-form .form-item label {
+	margin-bottom: 5px;
+}
+#employee-timetracker-form .form-item-office-out, #employee-timetracker-form .form-item-office-in {
+	float: left;
+	width: 50%;
+	margin-bottom: 18px;
+}
+#employee-timetracker-form input[type="text"], #employee-timetracker-search-form input[type="text"] {
+	width: 100%;
+	padding: 8px 5px;
+}
+#employee-timetracker-form .form-type-checkbox {
+	float: left;
+}
+/*#employee-timetracker-form input[type="submit"] */
+#employee-timetracker-form input.form-submit, a.button {
+	background-color: #00a07e;
+	border-radius: 5px;
+	border: medium none;
+	color: #fff;
+	float: right;
+	padding: 10px 15px;
+	background-color: #00a07e;
+}
+#employee-timetracker-checkin-form input.form-button-disabled, #employee-timetracker-form input.form-button-disabled, #employee-timetracker-form input.form-button-disabled:hover, #employee-timetracker-form input.form-button-disabled:focus, #employee-timetracker-form input.form-button-disabled:active, #employee-timetracker-form .form-disabled input, #employee-timetracker-form .form-disabled select, #employee-timetracker-form .form-disabled textarea {
+	background: #ededed none repeat scroll 0 0;
+	border-color: #bbb;
+	color: #717171;
+}
+/* employee-timetracker-search-form
+   ========================================================================== */
+
+#employee-timetracker-search-form .emp-submit-search, #employee-timetracker-search-form .form-item-emp-month, #employee-timetracker-search-form .form-item-emp-year {
+	float: left;
+}
+#employee-timetracker-search-form select {
+	width: 150px;
+}
+.emp-print-button {
+	clear: both;
+}
+#employee-timetracker-search-form .emp-submit-search,
+#employee-timetracker-checkin-form .emp-submit-checkin {
+	background-color: #00a07e;
+	background-image: none;
+	border: medium none;
+	border-radius: 5px;
+	color: #fff;
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-top: 27px;
+	padding: 10px 30px;
+}
+#employee-timetracker-search-form .emp-submit-search:hover, #employee-timetracker-form input.form-submit:hover,
+#employee-timetracker-checkin-form input#checkin_submit:hover{
+	background-color: #ffa733;
+}
+
+#emp-timesheet-table tr td, #emp-timesheet-table tr th {
+	border: 1px solid #cccccc !important;
+}
+.emp-timesheet-table {
+	margin: 1em 0;
+	min-width: 300px;
+	font-family: "Open Sans", sans-serif !important;
+}
+.emp-timesheet-table tr {
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+}
+.emp-timesheet-table th {
+	display: none;
+}
+.emp-timesheet-table td {
+	display: block;
+}
+.emp-timesheet-table td:first-child {
+	padding-top: .5em;
+}
+.emp-timesheet-table td:last-child {
+	padding-bottom: .5em;
+}
+.emp-timesheet-table td:before {
+	content: attr(data-th) ": ";
+	font-weight: bold;
+	width: 100px;
+	display: inline-block;
+	padding: 10px;
+}
+
+@media (min-width: 640px) {
+.emp-timesheet-table td:before {
+	display: none;
+}
+}
+.emp-timesheet-table th, .emp-timesheet-table td {
+	text-align: left;
+}
+
+@media (min-width: 640px) {
+.emp-timesheet-table th, .emp-timesheet-table td {
+	display: table-cell;
+	padding: .25em .5em;
+}
+.emp-timesheet-table th:first-child, .emp-timesheet-table td:first-child {
+	padding-left: 0;
+}
+.emp-timesheet-table th:last-child, .emp-timesheet-table td:last-child {
+	padding-right: 0;
+}
+}
+.emp-timesheet-table {
+	background: #34495E;
+	color: #fff;
+	border-radius: .4em;
+	overflow: hidden;
+}
+.emp-timesheet-table th, .emp-timesheet-table td {
+	margin: .5em 1em;
+}
+.emp-timesheet-table th a, .emp-timesheet-table th, .emp-timesheet-table td.active {
+	background-color: #4d4d4d;
+	font-weight: 700;
+	color: #fff;
+}
+.emp-timesheet-table td {
+	background-color: #f7f7f7;
+	color: #000;
+}
+
+@media (min-width: 640px) {
+.emp-timesheet-table th, .emp-timesheet-table td {
+	padding: 8px 5px !important;
+}
+}
+.employee-update-details-page .employee-update-top {
+	margin: -15px -15px 30px;
+}
+.employee-update-details-page {
+	line-height: 28px;
+}
+.employee-timetracker-wrapper .employee-update-title {
+	border-bottom: 1px solid #e1e1e1;
+	margin-top: 0;
+	padding: 15px 20px;
+	font-size: 30px;
+}
+.employee-update-details-page .employee-update-right {
+	border-left: 1px solid #cccccc;
+	float: right;
+	min-height: 400px;
+	padding: 10px 15px;
+	width: 68%;
+}
+.employee-update-details-page .employee-update-left {
+	float: left;
+	padding: 10px;
+	width: 20%;
+	line-height: normal;
+}
+.employee-update-details-page .employee-update-description {
+	margin-bottom: 10px;
+}
+.employee-update-details-page .employee-update-name {
+	font-size: 20px;
+	font-weight: 600;
+	margin-bottom: 19px;
+	text-transform: capitalize;
+}
+.employee-update-left > div {
+	margin-bottom: 20px;
+}
+.employee-timetracker-wrapper #edit-work-update-format {
+	display: none;
+}
+.time-error {
+	clear: both;
+}
+.full-day {
+	color: #00a07e;
+	font-weight: 600;
+}
+.half-day {
+	color: #ffa733;
+	font-weight: 600;
+}
+.not-half-day {
+	color: #ff0000;
+	font-weight: 600;
+}
+.employee-timetracker-wrapper .emp-submit-update {
+	background: #00a07e;
+	color: #fff;
+}
+.employee-timetracker-wrapper .form-item-emp-name {
+	float: left;
+	max-width: 275px;
+}
+.employee-timetracker-wrapper .emp-print-button {
+
+	clear: both;
+	display: block;
+	float: right;
+	margin-bottom: 10px;
+	max-width: 100px;
+}
+.employee-timetracker-wrapper .emp-print-button > a {
+	display: block;
+	/*padding: 2px 20px;*/
+	background-image:url("../images/printer.svg");
+	background-repeat:no-repeat;
+	background-position:top 0;
+	overflow:hidden;
+	text-indent:-999px;
+	height:31px;
+	width:32px;
+	transition: all 0.1s ease;
+	-webkit-transition: all 0.1s ease;
+	-moz-transition: all 0.1s ease;
+	-0-transition: all 0.1s ease;
+}
+.employee-timetracker-wrapper .emp-print-button > a:hover,
+.employee-timetracker-wrapper .emp-print-button > a:focus{
+	background-position:center bottom;
+}
+#employee-timetracker-checkin-form .emp-checkin-title{
+	float:left;
+}
+#employee-timetracker-checkin-form input{
+	float:right;
+}
+#employee-timetracker-checkin-form input#checkin_submit{
+	margin-top:0;
+}
+#employee-timetracker-form{
+	float:none;
+	clear:both;
+}
+input.form-button-disabled{
+	pointer-events: none;
+}
+
+.employee-timetracker-wrapper .emp-print-button{
+	clear:none;
+	margin-top:30px;
+}

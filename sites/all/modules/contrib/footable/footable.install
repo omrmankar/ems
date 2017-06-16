@@ -1,0 +1,199 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the FooTable module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function footable_requirements($phase) {
+  $requirements = array();
+  if ($phase == 'runtime') {
+    $t = get_t();
+    $plugin = libraries_detect('footable');
+    if (!$plugin['installed']) {
+      $requirements['footable'] = array(
+        'title' => $t('FooTable plugin'),
+        'value' => $t('Not found'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('You need to download the !footable and extract the contents of the "compiled" directory into the %path directory.', array(
+          '!footable' => l($t('FooTable plugin'), 'https://github.com/fooplugins/FooTable', array('target' => '_blank')),
+          '%path' => FOOTABLE_PLUGIN_PATH,
+        )),
+      );
+    }
+    elseif (version_compare($plugin['version'], FOOTABLE_PLUGIN_VERSION_MIN, '>=')) {
+      $requirements['footable'] = array(
+        'title' => $t('FooTable plugin'),
+        'value' => $plugin['version'],
+        'severity' => REQUIREMENT_OK,
+      );
+    }
+    else {
+      $requirements['footable'] = array(
+        'title' => $t('FooTable plugin'),
+        'value' => $plugin['version'],
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('The FooTable module minimally requires the @version version of the FooTable plugin.', array(
+          '@version' => FOOTABLE_PLUGIN_VERSION_MIN,
+        )),
+      );
+    }
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_schema().
+ */
+function footable_schema() {
+  $schema['footable_breakpoint'] = array(
+    'description' => 'Table storing FooTable breakpoints.',
+    'export' => array(
+      'key' => 'machine_name',
+      'key name' => 'Machine name',
+      'primary key' => 'id',
+      'identifier' => 'footable_breakpoint',
+      'admin_title' => 'name',
+      'default hook' => 'default_footable_breakpoint',
+      'can disable' => TRUE,
+      'api' => array(
+        'owner' => 'footable',
+        'api' => 'footable_breakpoint',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'The internal identifier of a FooTable breakpoint',
+        'no export' => TRUE,
+      ),
+      'machine_name' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'description' => 'A machine readable name of a FooTable breakpoint.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'description' => 'A human readable name of a FooTable breakpoint.',
+      ),
+      'breakpoint' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'FooTable breakpoint at which the column should be hidden.',
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'machine_name' => array('machine_name'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function footable_uninstall() {
+  variable_del('footable_plugin_type');
+  variable_del('footable_plugin_compression');
+  variable_del('footable_breakpoint_load_default');
+}
+
+/**
+ * Add the FooTable breakpoint table.
+ */
+function footable_update_7200() {
+  $schema['footable_breakpoint'] = array(
+    'description' => 'Table storing FooTable breakpoints.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'The internal identifier of a FooTable breakpoint',
+        'no export' => TRUE,
+      ),
+      'machine_name' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'description' => 'A machine readable name of a FooTable breakpoint.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'description' => 'A human readable name of a FooTable breakpoint.',
+      ),
+      'breakpoint' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'FooTable breakpoint at which the column should be hidden.',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+        'description' => 'Enabled or disabled',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Weight',
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'machine_name' => array('machine_name'),
+    ),
+  );
+  db_create_table('footable_breakpoint', $schema['footable_breakpoint']);
+}
+
+/**
+ * Add the 7-x.1.x breakpoints to provide backwards compatibility with the
+ * 7.x-1.x version.
+ */
+function footable_update_7201() {
+  if (!footable_breakpoint_load('phone')) {
+    $breakpoint = new stdClass();
+    $breakpoint->disabled = FALSE;
+    $breakpoint->api_version = 1;
+    $breakpoint->name = 'Phone';
+    $breakpoint->machine_name = 'phone';
+    $breakpoint->breakpoint = 480;
+    footable_breakpoint_save($breakpoint);
+  }
+
+  if (!footable_breakpoint_load('tablet')) {
+    $breakpoint = new stdClass();
+    $breakpoint->disabled = FALSE;
+    $breakpoint->api_version = 1;
+    $breakpoint->name = 'Tablet';
+    $breakpoint->machine_name = 'tablet';
+    $breakpoint->breakpoint = 1024;
+    footable_breakpoint_save($breakpoint);
+  }
+}
+
+/**
+ * Remove unneeded columns.
+ */
+function footable_update_7202() {
+  if (db_field_exists('footable_breakpoint', 'status')) {
+    db_drop_field('footable_breakpoint', 'status');
+  }
+  if (db_field_exists('footable_breakpoint', 'weight')) {
+    db_drop_field('footable_breakpoint', 'weight');
+  }
+}

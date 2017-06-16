@@ -1,0 +1,4 @@
+name = my_custom_module
+description = my custom module
+package = custom
+core = 7.x

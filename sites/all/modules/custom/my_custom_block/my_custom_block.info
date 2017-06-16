@@ -1,0 +1,6 @@
+name = My Custom Block
+description = This is My First Custom Block.
+configure = admin/structure/block
+package = Custom Block
+version = VERSION
+core = 7.x

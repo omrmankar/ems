@@ -1,0 +1,329 @@
+<?php
+/**
+ * Implements hook_help().
+ */
+function employee_timetracker_help($path, $arg) {
+	if ($path == 'admin/help#rupalform') {
+		$output = '<h3>' . t('About') . '</h3>';
+		$output .= '<p>' . t('The employee module manage(add, update & delete) Employee timesheet.') . '</p>';
+		return $output;
+	}
+}
+
+/**
+* Implementation of hook_menu().
+*/
+function employee_timetracker_menu() {
+	$items['employee/checkin'] = array(
+		'title' => 'Checkin',
+		'access arguments' => array('access content'),
+		'page callback' => 'drupal_get_form',
+		'page arguments'=>array('employee_timetracker_checkin_form'),
+		'file' => 'employee_timetracker_checkin_page.inc',
+		'type' => MENU_CALLBACK,
+		'access callback' => 'user_is_logged_in',
+	);
+	$items['employee/timetracker'] = array( 
+		'title' => 'Daily Update Form',
+		'access arguments' => array('access content'),
+		'page callback' => '_employee_timetracker_form_display',
+		'menu_name' => 'main-menu', 
+		'type' => MENU_NORMAL_ITEM,
+		'access callback' => 'user_is_logged_in',
+	);
+	$items['employee/timesheet'] = array( 
+		'title' => 'Employee Timesheet',
+		'access arguments' => array('access content'),
+		'page callback' => '_employee_timetracker_data_editor',
+		'file' => 'employee_timetracker_search_page.inc',
+		'menu_name' => 'main-menu', 
+		'type' => MENU_NORMAL_ITEM,
+		'access callback' => 'user_is_logged_in',
+	);
+	$items['employee/%'] = array(
+		//'title' => 'Employee Timesheet Details Page',
+		'page callback' => 'employee_timetracker_details_page',
+		'file' => 'employee_timetracker_details_page.inc',
+		'access callback' => TRUE,
+		'access callback' => 'user_is_logged_in',
+	);
+	$items['employee/edit/%'] = array(
+		#'title' => 'Employee Timesheet Edit Form',
+		'page callback' => 'drupal_get_form',
+		'page arguments'=> array('employee_timetracker_edit_confirm_form',2),
+        'file' => 'employee_timetracker_edit_page.inc',
+		'access callback' => TRUE,
+		'access callback' => 'user_is_logged_in',
+	);
+	$items['employee/delete/%'] = array(
+		'title' => 'Employee Timesheet Delete Form',
+		'page callback' => 'drupal_get_form',
+		'page arguments'=> array('employee_timetracker_delete_confirm_form',2),
+		'file' => 'employee_timetracker_delete_page.inc',
+		'access callback' => TRUE,
+		'access callback' => 'user_is_logged_in',
+	);
+	return $items;
+}
+
+function employee_timetracker_form() {
+	$arg0 = arg(0);
+	$arg1 = arg(1);
+	$officeintime = date("H:i");
+	if($arg0 == 'employee' && $arg1 == 'timetracker'){
+		global $user;
+		$update_date = date("d-M-Y");
+		$empcheckinresult = db_select('employee_checkin', 'ec')
+			->fields('ec', array('office_checkin_time'))
+			->condition('employee_id', $user->uid, '=')
+			->condition('update_date', $update_date, '=')
+			->execute()->fetchCol();
+		if (!empty($empcheckinresult)) { 
+			$officeintime = $empcheckinresult[0];
+		}
+	}
+	
+	$office_in_time = $officeintime;
+	$office_out_time = date("H:i");
+	$hday = 0;
+
+	$halfday = strtotime('04:30');
+	$fullday = strtotime('09:30');
+		
+	$intime = strtotime($office_in_time);
+	$outtime = strtotime($office_out_time);
+	
+	$timedif = ($outtime - $intime) / 60;
+	$hour =  floor($timedif / 60);
+	$minute = ($timedif % 60);
+	
+	$completed_time = sprintf('%02d:%02d', $hour, $minute);
+	$finalcompleted_time = strtotime($completed_time);
+	
+	if($finalcompleted_time >= $halfday && $finalcompleted_time < $fullday){
+		$hday = 1;
+		$disabled = '';
+		$emp_time_error = '<p class="half-day">Your Half Day is Completed!, Your Total Working Hours for Today - '.$completed_time.'</p>';
+		
+	}
+	if($finalcompleted_time > $fullday){
+		$hday = 0;
+		$disabled = '';
+		$emp_time_error = '<p class="full-day">Your Full Day is Completed!, Your Total Working Hours for Today - '.$completed_time.'</p>';
+	}
+	if($finalcompleted_time < $halfday){
+		$hday = 0;
+		$disabled = 'disabled';
+		$emp_time_error = '<p class="not-half-day">Your Half Day is Not Yet Completed!, Your Total Working Hours for Today - '.$completed_time.'</p>';
+	}
+	
+	$form['work_update']=array(
+		'#type' => 'text_format',
+        '#title' => 'Work Update',
+        '#description'=>t('Please insert Your update with project details'),
+        '#format'=>'filtered_html',
+        '#default_value' => '',
+        '#required' => TRUE,
+        '#attributes' => array('class' => array('emp-work-update')),
+        '#cols' => 80,
+        '#rows' => 10,
+	);
+	$form['office_in']=array(
+		'#type'=>'textfield',
+		'#title'=>t('Office In Time'),
+		'#description'=>t('Please insert your office-in time'),
+		'#required' => TRUE,
+		'#default_value' => $officeintime,
+		'#attributes' => array('class' => array('emp-office-in'),
+								'readonly' => 'readonly',
+								'disabled' => 'disabled',
+								'id' => 'timepicker_start'
+							),
+	);
+	$form['office_out']=array(
+		'#type'=>'textfield',
+		'#title'=>t('Office Out Time'),
+		'#description'=>t('Please insert your office-out time'),
+		'#required' => TRUE,
+		'#attributes' => array('class' => array('emp-office-out'),
+							   'readonly' => 'readonly',
+							   'disabled' => 'disabled',
+		 					   'id' => 'timepicker_end'
+							),
+		'#default_value' => date("H:i"),
+	);
+	
+	$form['emp_time_error']=array(
+			'#type' => 'markup',
+		    '#prefix' => '<div class="time-error">',
+		    '#suffix' => $emp_time_error.'</div>',
+	);
+	
+	$form['half_day']=array(
+		'#type'=>'checkbox',
+		'#title'=>t('Half Day'),
+		'#description'=>t('Consider it as half day'),
+		'#required' => FALSE,
+		'#default_value' => $hday,
+		'#attributes' => array('class' => array('emp-half-day'),
+							   'disabled' => 'disabled',
+							   'id' => 'timepicker_half_day'
+							)
+	);
+	$form['submit']=array(
+		'#type'=>'submit',
+		'#value'=>t('Submit Update'),
+		'#attributes' => array('class' => array('emp-submit-update'),
+							   $disabled => $disabled,
+							   'id' => 'timepicker_submit'
+							)
+	);
+	return $form;
+}
+
+
+function employee_timetracker_mail ($key, &$message, $params) {
+  switch ($key) {
+    case 'custom_workflow_mail':
+      // Set headers etc
+      $message['subject'] = $params['subject'];
+      $message['body'][] = $params['message'];
+      break;
+   
+  }
+}
+
+
+function employee_timetracker_form_submit($form, $form_state) {
+	/*print '<pre>'; print_r($form_state['input']); exit;*/ 
+	global $user;
+	$update_date = date("d-M-Y");
+	$emp_checkin_result = db_select('employee_checkin', 'ec')
+			->fields('ec', array('office_checkin_time'))
+			->condition('employee_id', $user->uid, '=')
+			->condition('update_date', $update_date, '=')
+			->execute()->fetchCol();
+	if (!empty($emp_checkin_result)) { 
+		$emp_checkin_time = $emp_checkin_result[0];
+	}
+	$employee_id = $user->uid;
+	$employee_name = $user->name;
+	$update_day = date("d");
+	$update_month = date("M");
+	$update_year = date("Y");
+	$work_update = $form_state['input']['work_update']['value'];
+	$office_in_time = $emp_checkin_time;
+	$office_out_time = date("H:i");
+	$half_day = 0;
+
+	$halfday = strtotime('04:30');
+	$fullday = strtotime('09:30');
+		
+	$intime = strtotime($office_in_time);
+	$outtime = strtotime($office_out_time);
+	
+	$timedif = ($outtime - $intime) / 60;
+	$hour =  floor($timedif / 60);
+	$minute = ($timedif % 60);
+	
+	$completed_time = sprintf('%02d:%02d', $hour, $minute);
+	$completed_time = strtotime($completed_time);
+	
+	//~ if($completed_time >= $halfday && $completed_time < $fullday){
+		//~ $half_day = 1;
+	//~ }
+	//~ else{
+		//~ $half_day = 0;
+	//~ }
+	
+	if($completed_time >= $halfday && $completed_time < $fullday){
+		$half_day = 'Half day';
+	}
+	if($completed_time > $fullday){
+		$half_day = 'Full day';
+	}
+	if($completed_time < $halfday){
+		$half_day = 'Leave';
+	}
+
+	$data = array(
+		'employee_id' => $employee_id,
+		'employee_name' => $employee_name,
+		'work_update' => $work_update,
+		'update_day' => $update_day,
+		'update_month' => $update_month,
+		'update_year' => $update_year,
+		'office_in_time' => $office_in_time,
+		'office_out_time' => $office_out_time,
+		'half_day' => $half_day,
+	);	
+	
+	$emp_result = db_select('employee_timetsheet', 'et')
+			->fields('et', array('id'))
+			->condition('employee_id', $user->uid, '=')
+			->condition('update_day', $update_day, '=')
+			->condition('update_month', $update_month, '=')
+			->condition('update_year', $update_year, '=')
+			->execute()->fetchCol();
+	
+	if (!empty($emp_result)) { 
+		$query = db_update('employee_timetsheet')
+		->fields(array(
+			'employee_id' => $data['employee_id'],
+			'employee_name' => $data['employee_name'],
+			'work_update' => $data['work_update'],
+			'update_day' => $data['update_day'],
+			'update_month' => $data['update_month'],
+			'update_year' => $data['update_year'],
+			'office_in_time' => $data['office_in_time'],
+			'office_out_time' => $data['office_out_time'],
+			'half_day' => $data['half_day'],
+		))
+		->condition('id', $emp_result[0])
+		->execute();
+       
+        drupal_set_message('Employee Update successfully Updated', $type = 'status');
+		drupal_goto('employee/timesheet');
+	}
+	else{
+		print_r($data['work_update']);
+		exit();
+		$query = db_insert('employee_timetsheet')->fields($data);
+		$submit_query = $query->execute();
+		$message = array('Your Update successfully Sent Thank You');
+        $to = 'om.mankar@newtechfusion.com';
+        $params = array(
+		     'body' => $data['work_update'],
+		     'subject' => 'Work Update',
+		 );
+       if (drupal_mail('employee_timetracker', 'custom_workflow_mail', $to, language_default(), $params)) {
+             drupal_set_message('Thanks, email successfully sent.');    
+        } 
+       else{
+        drupal_set_message('Email not sent.');
+         }
+		if($submit_query) {
+			drupal_set_message('Employee Update successfully added', $type = 'status');
+			drupal_goto('employee/timesheet');
+		}	
+		else{	
+			drupal_set_message(t('Error while inserting data into database'), 'error');
+		}
+	}	
+}
+
+/**
+ * Implements _employee_timetracker_form_display().
+ */
+function _employee_timetracker_form_display() {
+  module_load_include('inc', 'employee_timetracker', 'employee_timetracker_checkin_page');
+  $page = drupal_get_form('employee_timetracker_form');
+  $page = drupal_render($page);
+  $my_form = drupal_get_form('employee_timetracker_checkin_form');
+  $my_form = drupal_render($my_form);
+  $my_form .= $page;
+  return '<div class="employee-timetracker-wrapper">'.$my_form.'</div>';
+}
+
+
+

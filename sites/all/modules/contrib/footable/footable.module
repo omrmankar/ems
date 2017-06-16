@@ -1,0 +1,497 @@
+<?php
+
+/**
+ * @file
+ * Provides Views integration for the jQuery FooTable plugin.
+ */
+
+define('FOOTABLE_PLUGIN_PATH', 'sites/all/libraries/footable');
+define('FOOTABLE_PLUGIN_VERSION_MIN', '3.1.4');
+
+/**
+ * Implements hook_permission().
+ */
+function footable_permission() {
+  return array(
+    'administer footable' => array(
+      'title' => t('Administer FooTable'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function footable_menu() {
+  $items['admin/config/user-interface/footable/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Configure FooTable settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('footable_form_admin_settings'),
+    'access arguments' => array('administer footable'),
+    'file' => 'footable.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function footable_theme($existing, $type, $theme, $path) {
+  return array(
+    'footable' => array(
+      'variables' => array(
+        'header' => NULL,
+        'rows' => NULL,
+        'attributes' => NULL,
+        'caption' => NULL,
+        'breakpoints' => array(),
+        'expand_first' => FALSE,
+        'show_header' => TRUE,
+        'toggle_column' => 'first',
+      ),
+      'file' => 'footable.theme.inc',
+    ),
+    'footable_style_plugin_table' => array(
+      'render element' => 'form',
+      'file' => 'footable.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function footable_ctools_plugin_api($module, $api) {
+  if ($module == 'footable' && $api == 'footable_breakpoint') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function footable_ctools_plugin_directory($owner, $plugin_type) {
+  if ($plugin_type == 'export_ui') {
+    return 'plugins/export_ui';
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function footable_views_api() {
+  return array(
+    'api' => 3.0,
+    'path' => drupal_get_path('module', 'footable') . '/views',
+  );
+}
+
+/**
+ * Implements hook_jqmulti_files().
+ */
+function footable_jqmulti_files() {
+  return array(
+    drupal_get_path('module', 'footable') . '/footable.js',
+  );
+}
+
+/**
+ * Implements hook_jqmulti_libraries().
+ */
+function footable_jqmulti_libraries() {
+  return array(
+    'footable',
+  );
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function footable_libraries_info() {
+  $libraries['footable'] = array(
+    'name' => 'FooTable',
+    'vendor url' => 'https://github.com/fooplugins/FooTable',
+    'download url' => 'https://github.com/fooplugins/FooTable/tags',
+    'version arguments' => array(
+      'file' => 'footable.min.js',
+      // FooTable 3.x.
+      'pattern' => '#version ([0-9\.a-z]+)#',
+      'lines' => 10,
+    ),
+    'variants' => array(
+      'standalone_source' => array(
+        'files' => array(
+          'js' => array('footable.js'),
+          'css' => array('footable.standalone.css'),
+        ),
+      ),
+      'standalone_minified' => array(
+        'files' => array(
+          'js' => array('footable.min.js'),
+          'css' => array('footable.standalone.min.css'),
+        ),
+      ),
+      'bootstrap_source' => array(
+        'files' => array(
+          'js' => array('footable.js'),
+          'css' => array('footable.bootstrap.css'),
+        ),
+      ),
+      'bootstrap_minified' => array(
+        'files' => array(
+          'js' => array('footable.min.js'),
+          'css' => array('footable.bootstrap.min.css'),
+        ),
+      ),
+    ),
+  );
+
+  return $libraries;
+}
+
+/**
+ * Load the FooTable library.
+ *
+ * @see libraries_load()
+ */
+function footable_libraries_load() {
+  $type = variable_get('footable_plugin_type', 'standalone');
+  $compression = variable_get('footable_plugin_compression', 'minified');
+  libraries_load('footable', $type . '_' . $compression);
+}
+
+/**
+ * Display a view as a FooTable style.
+ *
+ * @see template_preprocess_views_view_table()
+ */
+function template_preprocess_footable_view(&$vars) {
+  template_preprocess_views_view_table($vars);
+
+  $view = $vars['view'];
+
+  $result = $vars['result'] = $vars['rows'];
+
+  $options = $view->style_plugin->options;
+  /** @var views_plugin_style_table $handler */
+  $handler = $view->style_plugin;
+
+  $fields = &$view->field;
+  $columns = $handler->sanitize_columns($options['columns'], $fields);
+
+  $footable = array();
+
+  // Provide backwards compatibility with 7.x-1.x.
+  if (!empty($options['footable']['hide']) && empty($options['footable']['breakpoint'])) {
+    $options['footable']['breakpoint'] = $options['footable']['hide'];
+  }
+
+  // Set columns to be hidden by FooTable plugin.
+  foreach ($columns as $field => $column) {
+    /** @var views_handler_field $field_handler */
+    $field_handler = $fields[$field];
+
+    // Get column type.
+    if (!empty($options['info'][$column]['type'])) {
+      $vars['column_attributes'][$column]['data-type'] = $options['info'][$column]['type'];
+    }
+    elseif ($field_handler instanceof views_handler_field_date) {
+      $vars['column_attributes'][$column]['data-type'] = 'date';
+    }
+    elseif (is_numeric($field_handler->last_render)) {
+      $vars['column_attributes'][$column]['data-type'] = 'numeric';
+    }
+    elseif (drupal_strlen($field_handler->last_render) != drupal_strlen(strip_tags($field_handler->last_render))) {
+      $vars['column_attributes'][$column]['data-type'] = 'html';
+    }
+    else {
+      $vars['column_attributes'][$column]['data-type'] = 'text';
+    }
+
+    // Add breakpoints.
+    if (!empty($options['footable']['breakpoint'][$column])) {
+      if (!empty($options['footable']['breakpoint'][$column]['all'])) {
+        $options['footable']['breakpoint'][$column] = array('all' => 'all');
+      }
+      $vars['column_attributes'][$column]['data-breakpoints'] = implode(' ', array_keys(array_filter($options['footable']['breakpoint'][$column])));
+    }
+
+    // Sorting.
+    if (!empty($options['footable']['component']['sorting']['enabled'])) {
+      $vars['header'][$field] = check_plain(!empty($field_handler) ? $field_handler->label() : '');
+
+      if (empty($options['info'][$field]['sortable']) || !$field_handler->click_sortable()) {
+        $vars['column_attributes'][$column]['data-sortable'] = FALSE;
+      }
+      else {
+        if (!empty($options['default']) && $options['default'] == $field) {
+          $vars['column_attributes'][$column]['data-sorted'] = TRUE;
+
+          if (!empty($options['info'][$field]['default_sort_order'])) {
+            $vars['column_attributes'][$column]['data-direction'] = strtoupper($options['info'][$field]['default_sort_order']);
+          }
+        }
+      }
+    }
+
+    // Add data values.
+    if (!empty($options['footable']['component']['filtering']['enabled']) || !empty($options['footable']['component']['sorting']['enabled'])) {
+      $types = array('html', 'date');
+      foreach ($result as $num => $row) {
+        if (in_array($vars['column_attributes'][$column]['data-type'], $types)) {
+          $value = strip_tags($vars['rows'][$num][$column]);
+          if (!empty($options['footable']['component']['filtering']['enabled'])) {
+            $vars['field_attributes'][$field][$num]['data-filter-value'] = $value;
+          }
+          if (!empty($options['footable']['component']['sorting']['enabled'])) {
+            $vars['field_attributes'][$field][$num]['data-sort-value'] = $value;
+          }
+        }
+      }
+    }
+  }
+
+  // Add FooTable classes and data attributes.
+  $type = variable_get('footable_plugin_type', 'standalone');
+  $vars['classes_array'][] = 'footable';
+
+  if (empty($vars['attributes_array']['id'])) {
+    $vars['attributes_array']['id'] = drupal_html_id('footable');
+  }
+
+  // Expand all rows.
+  $footable['expandAll'] = !empty($options['footable']['expand_all']);
+
+  // Expand first row.
+  $footable['expandFirst'] = !empty($options['footable']['expand_first']);
+
+  // Show header.
+  $footable['showHeader'] = !empty($options['footable']['show_header']);
+
+  // Expandable column.
+  $footable['toggleColumn'] = $options['footable']['toggle_column'];
+
+  // Icon expanded.
+  $vars['classes_array'][] = 'fooicon-expanded-' . $options['footable']['icon_expanded'];
+
+  // Icon collapsed.
+  $vars['classes_array'][] = 'fooicon-collapsed-' . $options['footable']['icon_collapsed'];
+
+  // Add Bootstrap configuration.
+  if ($type == 'bootstrap') {
+    if (!empty($options['footable']['bootstrap']['striped'])) {
+      $vars['classes_array'][] = 'table-striped';
+    }
+
+    if (!empty($options['footable']['bootstrap']['bordered'])) {
+      $vars['classes_array'][] = 'table-bordered';
+    }
+
+    if (!empty($options['footable']['bootstrap']['hover'])) {
+      $vars['classes_array'][] = 'table-hover';
+    }
+
+    if (!empty($options['footable']['bootstrap']['condensed'])) {
+      $vars['classes_array'][] = 'table-condensed';
+    }
+  }
+
+  // Add components.
+  // Filtering.
+  if (!empty($options['footable']['component']['filtering']['enabled'])) {
+    $footable['filtering'] = array(
+      'enabled' => TRUE,
+      'delay' => $options['footable']['component']['filtering']['delay'],
+      'ignoreCase' => !empty($options['footable']['component']['filtering']['ignore_case']),
+      'min' => $options['footable']['component']['filtering']['min'],
+      'placeholder' => t($options['footable']['component']['filtering']['placeholder']),
+      'position' => $options['footable']['component']['filtering']['position'],
+      'space' => $options['footable']['component']['filtering']['space'],
+    );
+  }
+
+  // Paging.
+  if (!empty($options['footable']['component']['paging']['enabled'])) {
+    $footable['paging'] = array(
+      'enabled' => TRUE,
+      'countFormat' => $options['footable']['component']['paging']['count_format'],
+      'current' => $options['footable']['component']['paging']['current'],
+      'limit' => $options['footable']['component']['paging']['limit'],
+      'position' => $options['footable']['component']['paging']['position'],
+      'size' => $options['footable']['component']['paging']['size'],
+    );
+  }
+
+  // Sorting.
+  if (!empty($options['footable']['component']['sorting']['enabled'])) {
+    $footable['sorting'] = array(
+      'enabled' => TRUE,
+    );
+  }
+
+  // Add breakpoints.
+  $footable['breakpoints'] = array();
+  foreach (footable_breakpoint_load_multiple() as $breakpoint) {
+    if (!empty($options['footable']['overwrite'][$breakpoint->machine_name])) {
+      $breakpoint->breakpoint = $options['footable']['overwrite'][$breakpoint->machine_name];
+    }
+    $footable['breakpoints'][$breakpoint->machine_name] = (int) $breakpoint->breakpoint;
+  }
+
+  // Add FooTable plugin files and calling script.
+  footable_libraries_load();
+  drupal_add_js(array('footable' => array($vars['attributes_array']['id'] => $footable)), array('type' => 'setting'));
+  drupal_add_js(drupal_get_path('module', 'footable') . '/footable.js');
+  drupal_add_css(drupal_get_path('module', 'footable') . '/css/footable_' . $type . '.css');
+}
+
+/**
+ * Sort FooTable breakpoint by breakpoint with name as a fallback.
+ */
+function footable_breakpoint_sort($a, $b) {
+  if ($a->breakpoint == $b->breakpoint) {
+    return strnatcasecmp($a->name, $b->name);
+  }
+  return ($a->breakpoint < $b->breakpoint) ? -1 : 1;
+}
+
+/**
+ * Returns a list of FooTable breakpoints including or excluding the default
+ * FooTable breakpoints (All / Default).
+ *
+ * @param bool $default
+ *   Include the default FooTable breakpoints (All / Default).
+ * @param bool $disabled
+ *   Include disabled breakpoints.
+ *
+ * @return array
+ *   List of loaded FooTable breakpoints.
+ */
+function footable_breakpoint_load_all($default = FALSE, $disabled = FALSE) {
+  $breakpoints = footable_breakpoint_load_multiple(array(), $disabled);
+
+  if ($default) {
+    $breakpoints['all'] = (object) array(
+      'name' => 'All',
+      'machine_name' => 'all',
+      'breakpoint' => 'all',
+    );
+    $breakpoints['default'] = (object) array(
+      'name' => 'Default',
+      'machine_name' => 'default',
+      'breakpoint' => 'default',
+    );
+  }
+
+  drupal_alter('footable_breakpoint_load_all', $breakpoints);
+  uasort($breakpoints, 'footable_breakpoint_sort');
+  return $breakpoints;
+}
+
+/**
+ * Returns a list of FooTable breakpoints filtered by machine name.
+ *
+ * @param array $machine_names
+ *   List of machines names to filter by or an empty array to load all
+ *   breakpoints.
+ * @param bool $disabled
+ *   Include disabled breakpoints.
+ *
+ * @return array
+ *   List of loaded FooTable breakpoints.
+ */
+function footable_breakpoint_load_multiple(array $machine_names = array(), $disabled = FALSE) {
+  ctools_include('export');
+  $breakpoints = empty($machine_names) ? ctools_export_load_object('footable_breakpoint') : ctools_export_load_object('footable_breakpoint', 'names', $machine_names);
+  drupal_alter('footable_breakpoint_load', $breakpoints);
+
+  if (!$disabled) {
+    foreach ($breakpoints as $machine_name => $breakpoint) {
+      if (!empty($breakpoint->disabled)) {
+        unset($breakpoints[$machine_name]);
+      }
+    }
+  }
+
+  uasort($breakpoints, 'footable_breakpoint_sort');
+  return $breakpoints;
+}
+
+/**
+ * Load a single FooTable breakpoint by machine name.
+ *
+ * @param string $machine_name
+ *   The breakpoint machine name.
+ *
+ * @return bool|object
+ *   The breakpoint configuration, or FALSE if no matching breakpoint was found.
+ */
+function footable_breakpoint_load($machine_name) {
+  $breakpoints = footable_breakpoint_load_multiple(array($machine_name), TRUE);
+  if (isset($breakpoints[$machine_name])) {
+    return $breakpoints[$machine_name];
+  }
+  return FALSE;
+}
+
+/**
+ * Save a breakpoint.
+ *
+ * @param object $breakpoint
+ *   FooTable breakpoint object to save to the database. A new breakpoint will
+ *   be created if $breakpoint->is_new is set to TRUE, otherwise the breakpoint
+ *   will be updated.
+ *
+ * @return bool|int
+ *   If the record insert or update failed, returns FALSE. If it succeeded,
+ *   returns SAVED_NEW or SAVED_UPDATED, depending on the operation performed.
+ */
+function footable_breakpoint_save($breakpoint) {
+  if (!isset($breakpoint->is_new)) {
+    $breakpoint->is_new = empty($breakpoint->id);
+  }
+
+  $update = !empty($breakpoint->is_new) || !empty($breakpoint->in_code_only) ? array() : 'machine_name';
+  $result = drupal_write_record('footable_breakpoint', $breakpoint, $update);
+  ctools_include('export');
+  ctools_export_load_object_reset('footable_breakpoint');
+  return $result;
+}
+
+/**
+ * Delete a single breakpoint by machine name.
+ *
+ * @param string $machine_name
+ *   The breakpoint machine name.
+ */
+function footable_breakpoint_delete($machine_name) {
+  db_delete('footable_breakpoint')
+    ->condition('machine_name', $machine_name)
+    ->execute();
+  ctools_include('export');
+  ctools_export_load_object_reset('footable_breakpoint');
+}
+
+/**
+ * Build a list of icons.
+ *
+ * @return array
+ *   A keyed array of in the form of 'name' => 'title'.
+ */
+function footable_icons() {
+  $icons = array(
+    'plus' => t('Plus'),
+    'minus' => t('Minus'),
+    'plus-circle' => t('Plus circle'),
+    'minus-circle' => t('Minus circle'),
+    'chevron-left' => t('Chevron left'),
+    'chevron-right' => t('Chevron right'),
+    'chevron-up' => t('Chevron up'),
+    'chevron-down' => t('Chevron down'),
+  );
+
+  drupal_alter('footable_icons', $icons);
+  return $icons;
+}

@@ -1,0 +1,144 @@
+<?php
+
+/**
+* Implementation of hook_uninstall().
+*/
+function employee_timetracker_install() {
+// Use schema API to create database table.
+   drupal_install_schema('employee_timetsheet');
+}
+
+/**
+* Implementation of hook_uninstall().
+*/
+function employee_timetracker_uninstall() {
+// Remove tables.
+drupal_uninstall_schema('employee_timetsheet');
+}
+
+/**
+* Implementation of hook_schema().
+*/
+function employee_timetracker_schema() {
+	$schema = array();
+/*********************************** Employee CheckIn ***********************************/
+	$schema['employee_timetsheet'] = array(
+		'description' => t('The base table for my custom form.'),
+		'primary key' => array('id'),
+		'fields' => array(
+			'id' => array(
+				'description' => 'The primary identifier for the table.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE
+			),
+			'employee_id' => array(
+				'description' => 'Employee Id',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'employee_name' => array(
+				'description' => 'Employee Name',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'work_update' => array(
+				'description' => 'Work Update',
+				'type' => 'varchar',
+				'length' => 1000,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'update_day' => array(
+				'description' => 'Update Day',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'update_month' => array(
+				'description' => 'Update Month',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'update_year' => array(
+				'description' => 'Update Day',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'office_in_time' => array(
+				'description' => 'Office In ',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'office_out_time' => array(
+				'description' => 'Office Out Time',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'half_day' => array(
+				'description' => 'Half Day',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+		),
+	);
+/*********************************** Employee CheckIn ***********************************/	
+	$schema['employee_checkin'] = array(
+		'description' => t('The base table for my custom form.'),
+		'primary key' => array('id'),
+		'fields' => array(
+			'id' => array(
+				'description' => 'The primary identifier for the table.',
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE
+			),
+			'employee_id' => array(
+				'description' => 'Employee Id',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'employee_name' => array(
+				'description' => 'Employee Name',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),			
+			'office_checkin_time' => array(
+				'description' => 'Office CheckIn time',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'update_date' => array(
+				'description' => 'Update Date',
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => ''
+			),
+		),
+	);
+	return $schema;
+}
+
+?>

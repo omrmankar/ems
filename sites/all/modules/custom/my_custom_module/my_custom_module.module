@@ -1,0 +1,37 @@
+<?php
+
+function my_custom_module_menu() {
+
+  
+      $items['custom-view']= array(
+           'title'=>'custom-view',
+           'page callback'=>'mymodule_view',
+           'description' => 'This page is accessible to authenticated users only',
+           'access callback' => 'user_is_logged_in',  
+        #   'menu_name' => 'main-menu', 
+           'type' => MENU_NORMAL_ITEM,
+           'page arguments' => array('mymodule_view'),
+        );
+      return $items;
+
+}
+
+
+function mymodule_view() {
+      
+      global $user;
+
+      $user_fields = user_load($user->uid);
+      
+      $img = $user_fields->picture;
+      
+      $update_img=theme('image_style', array('path' => $img->uri, 'style_name' => 'custom'));  
+      
+      return $update_img;
+
+
+
+}
+
+
+?>

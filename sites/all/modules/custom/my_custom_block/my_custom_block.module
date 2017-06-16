@@ -1,0 +1,74 @@
+<?php
+/**
+ * Implements hook_block_info().
+ */
+function my_custom_block_block_info() {
+  $blocks['my_custom_block'] = array(
+    'info' => t('My Custom Block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+/**
+ * Implements hook_block_view().
+ */
+function my_custom_block_block_view($delta='') {
+  $block = array();
+  switch ($delta) {
+     case 'my_custom_block' :
+      $block['subject'] = t('Testing block');
+      $block['content'] = array(
+        '#markup' => my_custom_block_view(),
+        '#attached' => array(
+                            'css' => array(
+                              drupal_get_path('module', 'my_custom_block') . '/my_custom_block.css',
+                            ),
+          'js' => array(
+                     drupal_get_path('module', 'my_custom_block') . '/my_custom_block.js',
+          ),
+        ),
+      );
+      break;
+  }
+  return $block;
+}
+/**
+ * Implements my_custom_block_view().
+*/
+function my_custom_block_view() {
+     
+     global $user,$base_url,$base_path;
+     
+     $link = $base_url . '/profile-main';
+     $userlink = $base_url .  '/user';
+     $logout = $base_url  . '/user/logout';
+     $user_fields = user_load($user->uid);
+     $img_path = $user_fields->picture;
+     $user_name = $user_fields->name;
+     $img_attributes = array(
+          'path' => $img_path->uri, 
+          'alt' => 'Test alt',
+          'title' => $user_name,
+          'width' => '50 px',
+          'height' => '50 px',
+          'attributes' => array('class' => 'user-profile-img', 'id' => 'user-pro-img'),
+      );
+     
+     $img = theme('image', $img_attributes);
+     
+     $xyz = '';
+     $xyz .= '<div class="dropdown-block">';
+	 $xyz .=   '<div class="user-profile-img">'.$img.'</div>';
+	 $xyz .=   '<div class="dropdown-block-content">';
+	 $xyz .=      '<a href="'.$link.'">My Profile</a>';
+	 $xyz .=    '<a href="'.$userlink.'">My account</a>';
+ 	 $xyz .=     '<a href="'.$logout.'">Log out</a>';
+     $xyz .='  </div>';
+	 $xyz .= '</div>';
+	 
+	 return $xyz;
+
+}
+
+
+?>
